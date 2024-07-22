@@ -19,6 +19,7 @@ TOKEN_FILE = 'tesla_tokens.json'
 ORDERS_FILE = 'tesla_orders.json'
 APP_VERSION = '4.32.6-2628'
 
+
 def generate_code_verifier_and_challenge():
     code_verifier = base64.urlsafe_b64encode(os.urandom(32)).rstrip(b'=').decode('utf-8')
     code_challenge = base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode('utf-8')).digest()).rstrip(
@@ -147,15 +148,20 @@ code_verifier, code_challenge = generate_code_verifier_and_challenge()
 
 if os.path.exists(TOKEN_FILE):
     try:
-        token_response = load_tokens_from_file()
-        access_token = token_response['access_token']
-        refresh_token = token_response['refresh_token']
+        token_file = load_tokens_from_file()
+        access_token = token_file['access_token']
+        refresh_token = token_file['refresh_token']
 
         if not is_token_valid(access_token):
+            print("Access token is not valid. Refreshing tokens...")
             token_response = refresh_tokens(refresh_token)
             access_token = token_response['access_token']
-            refresh_token = token_response['refresh_token']
-    except (json.JSONDecodeError, KeyError):
+            # refresh access token in file
+            token_file['access_token'] = access_token
+            save_tokens_to_file(token_file)
+
+    except (json.JSONDecodeError, KeyError) as e:
+        print("Error loading tokens from file. Re-authenticating...")
         token_response = exchange_code_for_tokens(get_auth_code())
         access_token = token_response['access_token']
         refresh_token = token_response['refresh_token']
@@ -189,6 +195,8 @@ if old_orders:
             print(diff)
     else:
         print("No differences found.")
+
+    save_orders_to_file(detailed_new_orders)
 else:
     # ask user if they want to save the new orders to a file for comparison next time
     if input("Do you want to save the order information to a file for comparison next time? (y/n): ").lower() == 'y':
