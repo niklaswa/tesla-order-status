@@ -207,10 +207,12 @@ for detailed_order in detailed_new_orders:
     order_details = detailed_order['details']
     scheduling = order_details.get('tasks', {}).get('scheduling', {})
     order_info = order_details.get('tasks', {}).get('registration', {}).get('orderDetails', {})
+    final_payment_data = order_details.get('tasks', {}).get('finalPayment', {}).get('data', {})
 
     print(f"Order ID: {order['referenceNumber']} | Status: {order['orderStatus']} | Model: {order['modelCode']} | VIN: {order.get('vin', 'N/A')}")
     print(f"Reservation Date: {order_info.get('reservationDate', 'N/A')}")
     print(f"Delivery Window: {scheduling.get('deliveryWindowDisplay', 'N/A')}")
     print(f"Vehicle Odometer: {order_info.get('vehicleOdometer', 'N/A')} {order_info.get('vehicleOdometerType', 'N/A')}")
     print(f"Vehicle Routing Location: {order_info.get('vehicleRoutingLocation', 'N/A')}")
+    print(f"ETA to Delivery Center: {final_payment_data.get('etaToDeliveryCenter', 'N/A')}")
     print(f"Delivery Appointment: {scheduling.get('apptDateTimeAddressStr', 'N/A')}")
