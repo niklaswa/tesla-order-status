@@ -7,6 +7,8 @@ import requests
 import webbrowser
 import urllib.parse
 
+from tesla_stores import TeslaStore
+
 # Define constants
 CLIENT_ID = 'ownerapi'
 REDIRECT_URI = 'https://auth.tesla.com/void/callback'
@@ -213,6 +215,6 @@ for detailed_order in detailed_new_orders:
     print(f"Reservation Date: {order_info.get('reservationDate', 'N/A')}")
     print(f"Delivery Window: {scheduling.get('deliveryWindowDisplay', 'N/A')}")
     print(f"Vehicle Odometer: {order_info.get('vehicleOdometer', 'N/A')} {order_info.get('vehicleOdometerType', 'N/A')}")
-    print(f"Vehicle Routing Location: {order_info.get('vehicleRoutingLocation', 'N/A')}")
+    print(f"Vehicle Routing Location: {order_info.get('vehicleRoutingLocation', 'N/A')} ({TeslaStore(order_info.get('vehicleRoutingLocation', 0)).label})")
     print(f"ETA to Delivery Center: {final_payment_data.get('etaToDeliveryCenter', 'N/A')}")
     print(f"Delivery Appointment: {scheduling.get('apptDateTimeAddressStr', 'N/A')}")
