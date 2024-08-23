@@ -195,10 +195,10 @@ if old_orders:
         print("Differences found:")
         for diff in differences:
             print(diff)
+            save_orders_to_file(detailed_new_orders)
     else:
         print("No differences found.")
-
-    save_orders_to_file(detailed_new_orders)
+    
 else:
     # ask user if they want to save the new orders to a file for comparison next time
     if input("Do you want to save the order information to a file for comparison next time? (y/n): ").lower() == 'y':
