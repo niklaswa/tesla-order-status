@@ -19,7 +19,7 @@ CODE_CHALLENGE_METHOD = 'S256'
 STATE = os.urandom(16).hex()
 TOKEN_FILE = 'tesla_tokens.json'
 ORDERS_FILE = 'tesla_orders.json'
-APP_VERSION = '4.32.6-2628'
+APP_VERSION = '4.36.1-2823'
 
 
 def generate_code_verifier_and_challenge():
