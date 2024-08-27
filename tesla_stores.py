@@ -56,6 +56,7 @@ class TeslaStore(int, Enum):
     SB = (26292, 'Saarbrücken Brebach-Fechingen')
     SHO = (27044, 'Stuttgart Holzgerlingen Sales, Used Car & Delivery Center')
     SWEI = (28717, 'Stuttgart Weinstadt')
+    W = (9340, 'Wien')
 
     @classmethod
     def from_str(cls, input_str):
