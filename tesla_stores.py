@@ -6,6 +6,11 @@ class TeslaStore(int, Enum):
         obj._value_ = value
         obj.label = label
         return obj
+    
+    @classmethod
+    def _missing_(cls, value):
+        # This method is called when a value is not found in the enum
+        return cls.NA
 
     NA = (0, 'N/A')
     A = (3693, 'Augsburg Gersthofen')
