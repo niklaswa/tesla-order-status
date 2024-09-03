@@ -115,6 +115,7 @@ class TeslaStore(int, Enum):
     ES_VIG = (407764, 'Vigo')
 
     # Sweden
+    SE_JKG = (9120, '10 Mogölsvägen Jönköping')
     SE_OER = (413954, '1 Säljarevägen Örebro')
 
     # Switzerland
