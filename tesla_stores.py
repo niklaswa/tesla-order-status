@@ -104,8 +104,14 @@ class TeslaStore(int, Enum):
     RO_TIM = (433906, 'Tesla Timișoara Pop Up')
 
     # Spain
-    ES_MAL = (4001206, 'Mallorca')
-    ES_VAL = (35032, 'Valladolid Pop Up')
+    ES_BAR = (36156, 'Barcelona')
+    ES_BIL = (21086, 'Bilbao')
+    ES_MAD = (8675, 'Madrid')
+    ES_MAL = (14704, 'Málaga')
+    ES_MALL = (4001206, 'Mallorca')
+    ES_SEV = (8680, 'Sevilla')
+    ES_VALL = (35032, 'Valladolid Pop Up')
+    ES_VAL = (58521, 'Valencia')
     ES_VIG = (407764, 'Vigo')
 
     # Sweden
