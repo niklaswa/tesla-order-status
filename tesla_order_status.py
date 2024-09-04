@@ -21,6 +21,8 @@ TOKEN_FILE = 'tesla_tokens.json'
 ORDERS_FILE = 'tesla_orders.json'
 APP_VERSION = '4.36.1-2823'
 
+def color_text(text, color_code):
+    return f"\033[{color_code}m{text}\033[0m"
 
 def generate_code_verifier_and_challenge():
     code_verifier = base64.urlsafe_b64encode(os.urandom(32)).rstrip(b'=').decode('utf-8')
@@ -40,9 +42,10 @@ def get_auth_code():
         'code_challenge_method': CODE_CHALLENGE_METHOD,
     }
     auth_url = f"{AUTH_URL}?{urllib.parse.urlencode(auth_params)}"
-    print(f"Opening browser for authentication: {auth_url}")
+    print(color_text("> Opening the browser for authentication:", '94'), auth_url)
     webbrowser.open(auth_url)
-    redirected_url = input("Please enter the redirected URL after authentication: ")
+    print(color_text("After authentication, you’ll be redirected to a new URL. The page might show a 'Page Not Found' error message, but the URL itself is still valid for this purpose.", '90'))
+    redirected_url = input(color_text("Please enter the redirected URL here: ", '93'))
     parsed_url = urllib.parse.urlparse(redirected_url)
     return urllib.parse.parse_qs(parsed_url.query).get('code')[0]
 
@@ -63,7 +66,7 @@ def exchange_code_for_tokens(auth_code):
 def save_tokens_to_file(tokens):
     with open(TOKEN_FILE, 'w') as f:
         json.dump(tokens, f)
-    print(f"Tokens saved to '{TOKEN_FILE}'")
+    print(color_text(f"> Tokens saved to '{TOKEN_FILE}'", '94'))
 
 
 def load_tokens_from_file():
@@ -106,7 +109,7 @@ def get_order_details(order_id, access_token):
 def save_orders_to_file(orders):
     with open(ORDERS_FILE, 'w') as f:
         json.dump(orders, f)
-    print(f"Orders saved to '{ORDERS_FILE}'")
+    print(color_text(f"\n> Orders saved to '{ORDERS_FILE}'", '94'))
 
 
 def load_orders_from_file():
@@ -120,15 +123,16 @@ def compare_dicts(old_dict, new_dict, path=''):
     differences = []
     for key in old_dict:
         if key not in new_dict:
-            differences.append(f"Removed key '{path + key}'")
+            differences.append(color_text(f"- Removed key '{path + key}'", '91'))
         elif isinstance(old_dict[key], dict) and isinstance(new_dict[key], dict):
             differences.extend(compare_dicts(old_dict[key], new_dict[key], path + key + '.'))
         elif old_dict[key] != new_dict[key]:
-            differences.append(f"Changed value at '{path + key}': {old_dict[key]} -> {new_dict[key]}")
+            differences.append(color_text(f"- {path + key}: {old_dict[key]}", '91'))
+            differences.append(color_text(f"+ {path + key}: {new_dict[key]}", '92'))
 
     for key in new_dict:
         if key not in old_dict:
-            differences.append(f"Added key '{path + key}': {new_dict[key]}")
+            differences.append(color_text(f"+ Added key '{path + key}': {new_dict[key]}", '92'))
 
     return differences
 
@@ -139,13 +143,15 @@ def compare_orders(old_orders, new_orders):
         if i < len(new_orders):
             differences.extend(compare_dicts(old_order, new_orders[i], path=f'Order {i}.'))
         else:
-            differences.append(f"Removed order {i}")
+            differences.append(color_text(f"- Removed order {i}", '91'))
     for i in range(len(old_orders), len(new_orders)):
-        differences.append(f"Added order {i}")
+        differences.append(color_text(f"+ Added order {i}", '92'))
     return differences
 
 
 # Main script logic
+print(color_text("\n> Start retrieving the information. Please be patient...\n", '94'))
+
 code_verifier, code_challenge = generate_code_verifier_and_challenge()
 
 if os.path.exists(TOKEN_FILE):
@@ -155,7 +161,7 @@ if os.path.exists(TOKEN_FILE):
         refresh_token = token_file['refresh_token']
 
         if not is_token_valid(access_token):
-            print("Access token is not valid. Refreshing tokens...")
+            print(color_text("> Access token is not valid. Refreshing tokens...", '94'))
             token_response = refresh_tokens(refresh_token)
             access_token = token_response['access_token']
             # refresh access token in file
@@ -163,7 +169,7 @@ if os.path.exists(TOKEN_FILE):
             save_tokens_to_file(token_file)
 
     except (json.JSONDecodeError, KeyError) as e:
-        print("Error loading tokens from file. Re-authenticating...")
+        print(color_text("> Error loading tokens from file. Re-authenticating...", '94'))
         token_response = exchange_code_for_tokens(get_auth_code())
         access_token = token_response['access_token']
         refresh_token = token_response['refresh_token']
@@ -172,7 +178,7 @@ else:
     token_response = exchange_code_for_tokens(get_auth_code())
     access_token = token_response['access_token']
     refresh_token = token_response['refresh_token']
-    if input("Do you want to save the tokens to a file in the current directory? (y/n): ").lower() == 'y':
+    if input(color_text("Would you like to save the tokens to a file in the current directory for use in future requests? (y/n): ", '93')).lower() == 'y':
         save_tokens_to_file(token_response)
 
 old_orders = load_orders_from_file()
@@ -192,16 +198,16 @@ for order in new_orders:
 if old_orders:
     differences = compare_orders(old_orders, detailed_new_orders)
     if differences:
-        print("Differences found:")
+        print(color_text("Differences found:", '90'))
         for diff in differences:
             print(diff)
-            save_orders_to_file(detailed_new_orders)
+        save_orders_to_file(detailed_new_orders)
     else:
-        print("No differences found.")
+        print(color_text("No differences found.", '90'))
     
 else:
     # ask user if they want to save the new orders to a file for comparison next time
-    if input("Do you want to save the order information to a file for comparison next time? (y/n): ").lower() == 'y':
+    if input(color_text("Would you like to save the order information to a file for future comparison? (y/n): ", '93')).lower() == 'y':
         save_orders_to_file(detailed_new_orders)
 
 for detailed_order in detailed_new_orders:
@@ -211,10 +217,28 @@ for detailed_order in detailed_new_orders:
     order_info = order_details.get('tasks', {}).get('registration', {}).get('orderDetails', {})
     final_payment_data = order_details.get('tasks', {}).get('finalPayment', {}).get('data', {})
 
-    print(f"Order ID: {order['referenceNumber']} | Status: {order['orderStatus']} | Model: {order['modelCode']} | VIN: {order.get('vin', 'N/A')}")
-    print(f"Reservation Date: {order_info.get('reservationDate', 'N/A')}")
-    print(f"Delivery Window: {scheduling.get('deliveryWindowDisplay', 'N/A')}")
-    print(f"Vehicle Odometer: {order_info.get('vehicleOdometer', 'N/A')} {order_info.get('vehicleOdometerType', 'N/A')}")
-    print(f"Vehicle Routing Location: {order_info.get('vehicleRoutingLocation', 'N/A')} ({TeslaStore(order_info.get('vehicleRoutingLocation', 0)).label})")
-    print(f"ETA to Delivery Center: {final_payment_data.get('etaToDeliveryCenter', 'N/A')}")
-    print(f"Delivery Appointment: {scheduling.get('apptDateTimeAddressStr', 'N/A')}")
+    print(f"\n{'-'*45}")
+    print(f"{'ORDER INFORMATION':^45}")
+    print(f"{'-'*45}")
+
+    print(f"{color_text('Order Details:', '94')}")
+    print(f"{color_text('- Order ID:', '94')} {order['referenceNumber']}")
+    print(f"{color_text('- Status:', '94')} {order['orderStatus']}")
+    print(f"{color_text('- Model:', '94')} {order['modelCode']}")
+    print(f"{color_text('- VIN:', '94')} {order.get('vin', 'N/A')}")
+    
+    print(f"\n{color_text('Reservation Details:', '94')}")
+    print(f"{color_text('- Reservation Date:', '94')} {order_info.get('reservationDate', 'N/A')}")
+    print(f"{color_text('- Order Booked Date:', '94')} {order_info.get('orderBookedDate', 'N/A')}")
+
+    print(f"\n{color_text('Vehicle Status:', '94')}")
+    print(f"{color_text('- Vehicle Odometer:', '94')} {order_info.get('vehicleOdometer', 'N/A')} {order_info.get('vehicleOdometerType', 'N/A')}")
+
+    print(f"\n{color_text('Delivery Information:', '94')}")
+    print(f"{color_text('- Routing Location:', '94')} {order_info.get('vehicleRoutingLocation', 'N/A')} ({TeslaStore(order_info.get('vehicleRoutingLocation', 0)).label})")
+    print(f"{color_text('- Delivery Window:', '94')} {scheduling.get('deliveryWindowDisplay', 'N/A')}")
+    print(f"{color_text('- ETA to Delivery Center:', '94')} {final_payment_data.get('etaToDeliveryCenter', 'N/A')}")
+    print(f"{color_text('- Delivery Appointment:', '94')} {scheduling.get('apptDateTimeAddressStr', 'N/A')}")
+
+    print(f"{'-'*45}\n")
+
