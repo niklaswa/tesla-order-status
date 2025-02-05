@@ -19,7 +19,7 @@ CODE_CHALLENGE_METHOD = 'S256'
 STATE = os.urandom(16).hex()
 TOKEN_FILE = 'tesla_tokens.json'
 ORDERS_FILE = 'tesla_orders.json'
-APP_VERSION = '4.41.0-3128'
+APP_VERSION = '4.41.5-3149'
 
 def color_text(text, color_code):
     return f"\033[{color_code}m{text}\033[0m"
