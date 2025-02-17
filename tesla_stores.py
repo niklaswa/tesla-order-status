@@ -21,6 +21,7 @@ class TeslaStore(int, Enum):
     AT_KL = (8730, 'Klagenfurt')
     AT_L = (14839, 'Linz')
     AT_W = (9340, 'Wien')
+    AT_S = (18435, 'Salzburg')
 
     # Belgium
     BE_AW = (32061, 'Awans')
