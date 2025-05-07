@@ -137,8 +137,13 @@ class TeslaStore(int, Enum):
     CH_ZUEWIN = (236, 'Zürich Winterthur')
 
     # Turkey
-    TR_ARM = (425125, 'Tesla Armada AVM')
-    TR_MET = (426471, 'Tesla Metropol AVM')
+    TR_ANKARM = (425125, 'Tesla Armada AVM')
+    TR_ISTFRK = (445210, 'Tesla Ferko Line')
+    TR_ISTMYDN = (449153, 'Tesla Istanbul Meydan AVM')
+    TR_IZMISTPRK = (451952, 'Tesla İstinyePark İzmir')
+    TR_DLVANK = (410805, 'Tesla Ankara Delivery Hub')
+    TR_DLVIST = (442359, 'Tesla Delivery Istanbul')
+    TR_DLVIZM = (460569, 'Tesla Delivery Gaziemir Izmir')
 
     # UK
     UK_STA = (14843, 'St Albans')
