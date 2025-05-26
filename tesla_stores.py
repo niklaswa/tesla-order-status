@@ -94,6 +94,10 @@ class TeslaStore(int, Enum):
     IT_BOL = (406212, 'Bolzano')
     IT_MILBLO = (424509, 'Milano-Merlata Bloom Pop Up')
 
+    # Netherlands
+    NL_TA = (714, 'Tilburg-Asteriastraat')
+    NL_ZG = (415466, 'Zeeland - Goes')
+
     # Norway
     NO_BOD = (26253, 'Bodø')
     NO_OSLSKI = (26256, 'Oslo-Ski')
