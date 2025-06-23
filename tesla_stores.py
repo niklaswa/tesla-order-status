@@ -47,6 +47,7 @@ class TeslaStore(int, Enum):
     FR_BAY = (413853, 'Tesla Bayonne')
     FR_PAR = (407259, 'Tesla Paris St-Ouen')
     FR_TLN = (4004152, 'Toulon Delivery Hub')
+    FR_VAL = (34251, 'Valenton Delivery Hub')
 
     # Germany
     DE_A = (3693, 'Augsburg Gersthofen')
