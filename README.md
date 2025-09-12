@@ -15,9 +15,13 @@ Then you need to install the `requests` library by running:
 pip install requests
 ```
 
-Optional: Copy the script to a new directory, the script asks to save the tokens and order details in the current directory for reusing the tokens and for comparing the data with the last time you fetched the order details.
-
-Then you can run the script by running:
+To run (Updates every hour by default) from PowerShell go to the folder holding your files and run. This will rerun the script every hour. I could have set this as a scheduled task but I wanted to be able to constantly view any updates. I may change this in the future.
 ```sh
-./Check-TeslaOrderStatus.ps1
+./check.ps1
 ```
+
+Every hour it will rerun and look for any changes in the data.
+
+## Optional (Website)
+I did this the easy way. Install IIS on my hosted server and set the Default Web Site to point at where all these files are held. You can then browse to the website and get a nicely formatted output of the check.ps1 script.
+
