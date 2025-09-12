@@ -2,6 +2,7 @@
 
 This fork is maintained by myself and has some additions. Currently these are :
 - Powershell script that runs hourly and identifies and displays any changes since the initial run.
+- Web front end that refreshes every 30 seconds. Nice Model 3 logo on the progress bar.
 
 ## Installation
 
