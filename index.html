@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tesla Order Status</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-image: url('https://images2.alphacoders.com/105/1052786.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        @supports not (backdrop-filter: blur(10px)) {
+            .glass-effect {
+                background: rgba(255, 255, 255, 0.5);
+            }
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        .status-label {
+            font-weight: bold;
+            color: #3b82f6;
+            flex: 1;
+        }
+        .status-value {
+            flex: 2;
+            text-align: left;
+            color: #e5e7eb;
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #3b82f6;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            z-index: 10;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #3b82f6;
+            width: 0;
+            transition: width 30s linear;
+            position: relative;
+        }
+        .progress-icon-start,
+        .progress-icon-end {
+            position: absolute;
+            top: 10px;
+            width: 30px;
+            height: 10px;
+            transition: all 30s linear;
+        }
+        .progress-icon-start {
+            left: -20px;
+        }
+        .progress-icon-end {
+            right: -20px;
+            top: 0px;
+            height: 10px;
+        }
+        .skeleton {
+            @apply animate-pulse bg-gray-600 bg-opacity-50 h-6 rounded;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center text-white font-sans">
+    <div class="progress-container" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Status refresh progress">
+        <div class="progress-bar" id="progressBar">
+            <img src="tesla3.png" alt="" class="progress-icon-start" id="progressIconStart" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiMzYjgyZjYiIHJ4PSIzIi8+PHRleHQgeD0iMTAiIHk9IjI1IiBmaWxsPSJ3aGl0ZSIgZm9udC1zaXplPSIxOCI+VC90ZXh0Pjwvc3ZnPg=='">
+            <img src="model3.png" alt="Progress end icon" class="progress-icon-end" id="progressIconEnd" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCA0MCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iMjQiIGZpbGw9IiMzYjgyZjYiIHJ4PSIzIi8+PHRleHQgeD0iMTAiIHk9IjE2IiBmaWxsPSJ3aGl0ZSIgZm9udC1zaXplPSIxMiI+TS90ZXh0Pjwvc3ZnPg=='">
+        </div>
+    </div>
+    <div class="container mx-auto p-6 max-w-3xl glass-effect rounded-xl shadow-lg min-h-screen flex flex-col justify-center" data-file="current_output.txt">
+        <center><img src='teslalogo.png' style="width:100px;height:102px;"></center>
+	<h1 class="text-4xl font-bold text-center mb-6 text-tesla-blue"><font color='#000000'>Lee's Tesla Order Status</font></h1>
+        <div id="statusOutput" class="bg-gray-800 bg-opacity-80 p-6 rounded-lg text-lg" aria-live="polite">
+            <div class="skeleton h-6 w-full mb-2"></div>
+            <div class="skeleton h-6 w-3/4"></div>
+        </div>
+        <p class="text-center mt-6 text-sm text-gray-400">Last updated: <span id="lastUpdated">N/A</span></p>
+        <div id="errorDetails" class="mt-4 text-center text-sm text-red-400 hidden" role="alert"></div>
+    </div>
+
+    <script>
+        function cleanAnsiCodes(text) {
+            return text.replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, '').trim();
+        }
+
+        function resetProgressBar() {
+            const progressBar = document.getElementById('progressBar');
+            const progressIconStart = document.getElementById('progressIconStart');
+            const progressIconEnd = document.getElementById('progressIconEnd');
+            progressBar.style.transition = 'none';
+            progressIconStart.style.transition = 'none';
+            progressIconEnd.style.transition = 'none';
+            progressBar.style.width = '0%';
+            progressIconStart.style.left = '-20px';
+            progressIconEnd.style.right = '-20px';
+            progressBar.setAttribute('aria-valuenow', '0');
+            void progressBar.offsetWidth;
+            progressBar.style.transition = 'width 30s linear';
+            progressIconStart.style.transition = 'left 30s linear';
+            progressIconEnd.style.transition = 'right 30s linear';
+            requestAnimationFrame(() => {
+                progressBar.style.width = '100%';
+                progressIconStart.style.left = 'calc(100% - 20px)';
+                progressIconEnd.style.right = '0';
+                progressBar.setAttribute('aria-valuenow', '100');
+            });
+        }
+
+        async function fetchStatus() {
+            const outputDiv = document.getElementById('statusOutput');
+            const errorDiv = document.getElementById('errorDetails');
+            const lastUpdatedSpan = document.getElementById('lastUpdated');
+            const filePath = document.querySelector('.container').dataset.file || 'current_output.txt';
+
+            outputDiv.innerHTML = `
+                <div class="skeleton h-6 w-full mb-2"></div>
+                <div class="skeleton h-6 w-3/4"></div>
+            `;
+
+            try {
+                const response = await fetch(filePath, {
+                    method: 'GET',
+                    cache: 'no-cache'
+                });
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('Status file not found');
+                    } else {
+                        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+                    }
+                }
+
+                const text = await response.text();
+                const cleanText = cleanAnsiCodes(text);
+                const lines = cleanText.split('\n').filter(line => line.trim() !== '');
+                const relevantLines = lines.slice(4);
+
+                outputDiv.innerHTML = '';
+                if (relevantLines.length === 0) {
+                    outputDiv.innerHTML = '<p class="text-gray-300">No status information available.</p>';
+                } else {
+                    let currentSection = null;
+                    relevantLines.forEach(line => {
+                        if (line.match(/^[A-Za-z\s]+:$/)) {
+                            const sectionDiv = document.createElement('div');
+                            sectionDiv.className = 'section-title';
+                            sectionDiv.textContent = line.trim();
+                            sectionDiv.setAttribute('role', 'heading');
+                            sectionDiv.setAttribute('aria-level', '2');
+                            outputDiv.appendChild(sectionDiv);
+                            currentSection = sectionDiv;
+                        } else if (line.match(/^-\s/)) {
+                            const parts = line.replace(/^-\s/, '').split(':', 2).map(s => s.trim());
+                            if (parts.length === 2 && parts[0] && parts[1]) {
+                                const itemDiv = document.createElement('div');
+                                itemDiv.className = 'status-item';
+                                itemDiv.innerHTML = `
+                                    <span class="status-label">${parts[0]}:</span>
+                                    <span class="status-value">${parts[1]}</span>
+                                `;
+                                outputDiv.appendChild(itemDiv);
+                            }
+                        }
+                    });
+                }
+
+                lastUpdatedSpan.textContent = new Date().toLocaleString();
+                errorDiv.classList.add('hidden');
+                resetProgressBar();
+            } catch (error) {
+                console.error('Error fetching status:', error);
+                outputDiv.innerHTML = '<p class="text-red-400">Error loading status: Unable to fetch data</p>';
+                errorDiv.innerHTML = `Detailed error: ${error.message}. Please ensure the status file exists and is accessible.`;
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        // Check for backdrop-filter support
+        if (!CSS.supports('backdrop-filter', 'blur(10px)')) {
+            console.warn('Backdrop-filter not supported; using fallback background.');
+        }
+
+        // Initial fetch and set interval
+        fetchStatus();
+        setInterval(fetchStatus, 30000);
+    </script>
+</body>
+</html>
