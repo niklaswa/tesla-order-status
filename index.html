@@ -88,6 +88,28 @@
         .skeleton {
             @apply animate-pulse bg-gray-600 bg-opacity-50 h-6 rounded;
         }
+        .floating-link {
+            position: fixed;
+            right: 20px;
+            z-index: 20;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: bold;
+            color: #3b82f6;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .floating-link:hover {
+            background: rgba(59, 130, 246, 0.2);
+            color: #e5e7eb;
+        }
+        .github-link {
+            top: 20px;
+        }
+        .blog-link {
+            top: 60px;
+        }
         @media (max-width: 640px) {
             .container {
                 padding: 1rem;
@@ -106,11 +128,24 @@
             h1 {
                 font-size: 1.5rem;
             }
+            .floating-link {
+                right: 10px;
+                padding: 0.4rem 0.8rem;
+                font-size: 0.75rem;
+            }
+            .github-link {
+                top: 10px;
+            }
+            .blog-link {
+                top: 50px;
+            }
         }
     </style>
 </head>
 <body class="flex flex-col min-h-screen text-white font-sans">
-    <div class="progress-container" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Status refresh progress">
+    <a href="https://github.com/DigitalSaviour/tesla-order-status" class="floating-link github-link glass-effect" target="_blank" rel="noopener noreferrer" aria-label="View project on GitHub">GitHub Repo</a>
+    <a href="https://www.digitalsaviour.co.uk" class="floating-link blog-link glass-effect" target="_blank" rel="noopener noreferrer" aria-label="Visit Digital Saviour blog">My Blog</a>
+    <div class="progress-container" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Status refresh progress upp">
         <div class="progress-bar" id="progressBar">
             <img src="tesla3.png" alt="" class="progress-icon-start" id="progressIconStart" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiMzYjgyZjYiIHJ4PSIzIi8+PHRleHQgeD0iMTAiIHk9IjI1IiBmaWxsPSJ3aGl0ZSIgZm9udC1zaXplPSIxOCI+VC90ZXh0Pjwvc3ZnPg=='">
             <img src="model3.png" alt="Progress end icon" class="progress-icon-end" id="progressIconEnd" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCA0MCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iMjQiIGZpbGw9IiMzYjgyZjYiIHJ4PSIzIi8+PHRleHQgeD0iMTAiIHk9IjE2IiBmaWxsPSJ3aGl0ZSIgZm9udC1zaXplPSIxMiI+TS90ZXh0Pjwvc3ZnPg=='">
