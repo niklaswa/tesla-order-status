@@ -1,3 +1,8 @@
+# This is a fork from https://github.com/niklaswa/tesla-order-status/tree/main
+
+This fork is maintained by myself and has some additions. Currently these are :
+- Powershell script that runs hourly and identifies and displays any changes since the initial run.
+
 ## Installation
 
 To run the script, you need to install python3 for your operating system.
@@ -13,14 +18,5 @@ Optional: Copy the script to a new directory, the script asks to save the tokens
 
 Then you can run the script by running:
 ```sh
-python3 tesla_order_status.py
+./Check-TeslaOrderStatus.ps1
 ```
-
-## Preview
-
-#### Main information
-![Image](https://github.com/user-attachments/assets/b19cf27c-e3a3-48a0-9b7f-ec2c649e4166)
-
-#### Change tracking
-![Image](https://github.com/user-attachments/assets/4f1f05cb-743e-4605-97ff-3c1d0d6ff67d)
-
