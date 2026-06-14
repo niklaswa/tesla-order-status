@@ -12,6 +12,7 @@ from curl_cffi import requests as tls_requests
 TLS_IMPERSONATE = 'chrome'
 
 from tesla_stores import TeslaStore
+from datetime import datetime
 
 # Define constants
 CLIENT_ID = 'ownerapi'
@@ -209,6 +210,7 @@ if old_orders:
         save_orders_to_file(detailed_new_orders)
     else:
         print(color_text("No differences found.", '90'))
+        print(f"{color_text('Checked on', '90')} {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
 else:
     # ask user if they want to save the new orders to a file for comparison next time
