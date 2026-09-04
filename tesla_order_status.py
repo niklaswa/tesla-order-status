@@ -6,6 +6,7 @@ import hashlib
 import requests
 import webbrowser
 import urllib.parse
+from datetime import datetime
 
 # Tesla's auth edge (Akamai) fingerprints the TLS handshake of the token request.
 from curl_cffi import requests as tls_requests
@@ -18,7 +19,7 @@ CLIENT_ID = 'ownerapi'
 REDIRECT_URI = 'tesla://auth/callback'
 AUTH_URL = 'https://auth.tesla.com/oauth2/v3/authorize'
 TOKEN_URL = 'https://auth.tesla.com/oauth2/v3/token'
-SCOPE = 'openid email offline_access'
+SCOPE = 'openid email offline_access vehicle_device_data vehicle_cmds vehicle_charging_cmds'
 CODE_CHALLENGE_METHOD = 'S256'
 STATE = os.urandom(16).hex()
 TOKEN_FILE = 'tesla_tokens.json'
@@ -47,7 +48,10 @@ def get_auth_code():
     }
     auth_url = f"{AUTH_URL}?{urllib.parse.urlencode(auth_params)}"
     print(color_text("> Opening the browser for authentication:", '94'), auth_url)
-    webbrowser.open(auth_url)
+    try:
+        webbrowser.get('firefox').open(auth_url)
+    except webbrowser.Error:
+        webbrowser.open(auth_url)
     print(color_text("After logging in, the browser will try to redirect to a 'tesla://' URL which it cannot open.", '90'))
     print(color_text("Open your browser's Developer Tools (F12) → Network tab, find the redirect request, and copy the full 'tesla://auth/callback?code=...' URL from there.", '90'))
     redirected_url = input(color_text("Please enter the redirected URL here: ", '93'))
@@ -218,32 +222,85 @@ else:
 for detailed_order in detailed_new_orders:
     order = detailed_order['order']
     order_details = detailed_order['details']
-    scheduling = order_details.get('tasks', {}).get('scheduling', {})
-    order_info = order_details.get('tasks', {}).get('registration', {}).get('orderDetails', {})
-    final_payment_data = order_details.get('tasks', {}).get('finalPayment', {}).get('data', {})
 
-    print(f"\n{'-'*45}")
-    print(f"{'ORDER INFORMATION':^45}")
-    print(f"{'-'*45}")
+    # Debug: uncomment to dump raw API responses
+    # print(f"\n{'-'*50}")
+    # print(f"{'RAW TESLA RESPONSE':^50}")
+    # print(f"{'-'*50}")
+    # print(color_text("-- /api/1/users/orders --", '90'))
+    # print(json.dumps(order, indent=2))
+    # print(color_text("-- /tasks --", '90'))
+    # print(json.dumps(order_details, indent=2))
+    # print(f"{'-'*50}\n")
+
+    tasks = order_details.get('tasks', {})
+    scheduling = tasks.get('scheduling', {})
+    delivery_details = tasks.get('deliveryDetails', {})
+    reg = tasks.get('registration', {})
+    final_payment = tasks.get('finalPayment', {})
+    trade_in = tasks.get('tradeIn', {})
+    financing = tasks.get('financing', {})
+
+    # orderDetails may live under deliveryDetails or registration
+    order_info = delivery_details.get('orderDetails', {}) or reg.get('orderDetails', {})
+
+    print(f"\n{'-'*50}")
+    print(f"{'ORDER INFORMATION':^50}")
+    print(f"{'-'*50}")
+    print(f"{color_text('- Queried at:', '90')} {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     print(f"{color_text('Order Details:', '94')}")
     print(f"{color_text('- Order ID:', '94')} {order['referenceNumber']}")
-    print(f"{color_text('- Status:', '94')} {order['orderStatus']}")
+    print(f"{color_text('- Status:', '94')} {order['orderStatus']} / {order.get('orderSubstatus', 'N/A')}")
     print(f"{color_text('- Model:', '94')} {order['modelCode']}")
     print(f"{color_text('- VIN:', '94')} {order.get('vin', 'N/A')}")
-    
-    print(f"\n{color_text('Reservation Details:', '94')}")
+    print(f"{color_text('- Options:', '94')} {order.get('mktOptions', 'N/A')}")
+    print(f"{color_text('- Country:', '94')} {order.get('countryCode', 'N/A')}")
+
+    print(f"\n{color_text('Order Info:', '94')}")
     print(f"{color_text('- Reservation Date:', '94')} {order_info.get('reservationDate', 'N/A')}")
     print(f"{color_text('- Order Booked Date:', '94')} {order_info.get('orderBookedDate', 'N/A')}")
-
-    print(f"\n{color_text('Vehicle Status:', '94')}")
-    print(f"{color_text('- Vehicle Odometer:', '94')} {order_info.get('vehicleOdometer', 'N/A')} {order_info.get('vehicleOdometerType', 'N/A')}")
-
-    print(f"\n{color_text('Delivery Information:', '94')}")
+    print(f"{color_text('- Vehicle Odometer:', '94')} {order_info.get('vehicleOdometer', 'N/A')} {order_info.get('vehicleOdometerType', '')}")
     print(f"{color_text('- Routing Location:', '94')} {order_info.get('vehicleRoutingLocation', 'N/A')} ({TeslaStore(order_info.get('vehicleRoutingLocation', 0)).label})")
-    print(f"{color_text('- Delivery Window:', '94')} {scheduling.get('deliveryWindowDisplay', 'N/A')}")
-    print(f"{color_text('- ETA to Delivery Center:', '94')} {final_payment_data.get('etaToDeliveryCenter', 'N/A')}")
-    print(f"{color_text('- Delivery Appointment:', '94')} {scheduling.get('apptDateTimeAddressStr', 'N/A')}")
 
-    print(f"{'-'*45}\n")
+    print(f"\n{color_text('Payment:', '94')}")
+    print(f"{color_text('- Status:', '94')} {final_payment.get('status', 'N/A')}")
+    print(f"{color_text('- Amount Due:', '94')} {final_payment.get('amountDue', 'N/A')} {final_payment.get('currencyFormat', {}).get('currencyCode', '')}")
+    print(f"{color_text('- Amount Sent:', '94')} {final_payment.get('amountSent', 'N/A')} {final_payment.get('currencyFormat', {}).get('currencyCode', '')}")
+    print(f"{color_text('- Complete:', '94')} {final_payment.get('complete', 'N/A')}")
+
+    print(f"\n{color_text('Financing:', '94')}")
+    print(f"{color_text('- Status:', '94')} {financing.get('status', 'N/A')}")
+    print(f"{color_text('- Intent:', '94')} {financing.get('financeIntent', 'N/A')}")
+    print(f"{color_text('- Complete:', '94')} {financing.get('complete', 'N/A')}")
+    financing_card = financing.get('card', {})
+    print(f"{color_text('- Summary:', '94')} {financing_card.get('subtitle', 'N/A')}")
+
+    print(f"\n{color_text('Trade-In:', '94')}")
+    print(f"{color_text('- Intent:', '94')} {trade_in.get('tradeInIntent', 'N/A')}")
+    print(f"{color_text('- Status:', '94')} {trade_in.get('status', 'N/A')}")
+    print(f"{color_text('- Complete:', '94')} {trade_in.get('complete', 'N/A')}")
+
+    print(f"\n{color_text('Registration:', '94')}")
+    print(f"{color_text('- Current Step:', '94')} {reg.get('currentStep', 'N/A')}")
+    print(f"{color_text('- Complete:', '94')} {reg.get('complete', 'N/A')}")
+    print(f"{color_text('- Customer Type:', '94')} {reg.get('customerType', 'N/A')}")
+    alert = reg.get('alertStatuses', {})
+    print(f"{color_text('- Alert - Registration:', '94')} {alert.get('registration', 'N/A')}")
+    print(f"{color_text('- Alert - Order Type:', '94')} {alert.get('orderType', 'N/A')}")
+    print(f"{color_text('- Alert - Final Payment:', '94')} {alert.get('finalPayment', 'N/A')}")
+
+    print(f"\n{color_text('Delivery:', '94')}")
+    print(f"{color_text('- Delivery Type:', '94')} {scheduling.get('deliveryType', 'N/A')}")
+    print(f"{color_text('- Delivery Center:', '94')} {scheduling.get('deliveryAddressTitle', 'N/A')}")
+    print(f"{color_text('- Delivery Window:', '94')} {scheduling.get('deliveryWindowDisplay') or 'N/A'}")
+    print(f"{color_text('- Appointment:', '94')} {scheduling.get('apptDateTimeAddressStr') or 'N/A'}")
+    print(f"{color_text('- Self-scheduling URL:', '94')} {scheduling.get('selfSchedulingUrl', 'N/A')}")
+    print(f"{color_text('- Scheduling enabled:', '94')} {scheduling.get('enabled', 'N/A')}")
+    print(f"{color_text('- Ready to Accept:', '94')} {scheduling.get('readyToAccept', 'N/A')}")
+    vin_assigned = bool(order.get('vin'))
+    print(f"{color_text('- VIN Assigned:', '94')} {'Yes' if vin_assigned else 'No'}")
+
+    print(f"{'-'*50}\n")
+
 
